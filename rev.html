@@ -1,0 +1,132 @@
+<style>
+
+table.revtable {
+    font-family: monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+td span[title] {
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 2px 0 1px 2px;
+}
+
+td span[title]:hover, td span.hover {
+    border-color: #999;
+    border-right-color: #ccc;
+    border-bottom-color: #ccc;
+    background-color: #eee;
+}
+    
+.rendered_html td, .rendered_html th {
+    border: 1px solid #DADADA;
+}
+
+td span.clicked {
+  border-color: green;
+  border-width: 2px;
+}
+
+td span.hit {
+  border-color: blue;
+  border-width: 2px;
+}
+
+td div.totals {
+    float: right;
+    font-size: 80%
+}
+
+</style>
+
+<script>
+
+$( document ).ready(function() {
+
+  var $hits = $('span#hits');
+  
+  $('input#search').on('input', function() {
+    
+    $hits.text(0);
+    
+    var input_value = parseInt($(this).val() || 0);
+                
+    //if (input_value > 0) {
+    
+    var $these = $('td span[order]').sort(function(a, b) {
+        return $(a).attr('order') - $(b).attr('order');
+    });
+    
+    var sum = 0;
+    var sums = [];
+    
+    $these.each(function() {
+      $(this).removeClass('hit');
+      if (input_value) {
+          var value = parseInt($(this).attr('value'));
+          sum += value;
+          sums.push(this);
+          if (sum == input_value) {
+            sums.forEach(function(item) {
+              $(item).addClass('hit');
+            });
+            $hits.text(parseInt($hits.text())+1);
+            sum = 0;
+            sums = [];
+          } else if (sum > input_value) {
+            while (sum > input_value) {
+              sum -= parseInt($(sums.shift()).attr('value'));
+              if (sum == input_value) {
+                sums.forEach(function(item) {
+                  $(item).addClass('hit');
+                });
+                $hits.text(parseInt($hits.text())+1);
+                sum = 0;
+                sums = [];
+                break;
+              }
+            }
+          }
+      }
+    });
+    //}
+  });
+  
+  var hovon = function () {
+      var $that = $(this);
+      var $these = $('td span[index="'+$that.attr('index')+'"]');
+      $these.addClass('hover');
+      var text = $.map($these, function(element) {return $(element).attr('roman')}).join("+");
+      var value = $.map($these, function(element) {return $(element).attr('value')}).join("+");
+      var sum = 0;
+      $these.each(function() {
+        sum += parseInt($(this).attr('value'));
+      });
+      text = value == sum ? text+'='+value : text+'='+value+'='+sum;
+      $these.attr('title', text);
+  };
+  
+  var hovoff = function () {
+      var $that = $(this);
+      var $these = $('td span[index="'+$that.attr('index')+'"]');
+      $these.removeClass('hover');
+  };
+  
+  var $selected = $('span#selected');
+   
+  $('td span[index]').click(function () {
+      var $that = $(this);
+      var val = parseInt($that.attr('value'));
+      var selected = parseInt($selected.text());
+      selected = $that.hasClass('clicked') ? selected - val : selected + val;
+      $selected.text(selected);
+      $that.toggleClass('clicked');
+  });
+  
+  $('td span[index]').hover(hovon, hovoff);
+  
+});
+
+</script>
